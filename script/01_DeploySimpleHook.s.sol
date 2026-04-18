@@ -18,7 +18,8 @@ contract DeploySimpleHookScript is BaseScript {
         bytes32 salt;
 
         if (CREATE2_FACTORY.code.length > 0) {
-            (expectedHookAddress, salt) = HookMiner.find(CREATE2_FACTORY, flags, type(SimpleHook).creationCode, constructorArgs);
+            (expectedHookAddress, salt) =
+                HookMiner.find(CREATE2_FACTORY, flags, type(SimpleHook).creationCode, constructorArgs);
 
             vm.startBroadcast(deployerPrivateKey);
             SimpleHook hook = new SimpleHook{salt: salt}(poolManager);
@@ -30,7 +31,8 @@ contract DeploySimpleHookScript is BaseScript {
 
         vm.startBroadcast(deployerPrivateKey);
         LocalCreate2Deployer factory = new LocalCreate2Deployer();
-        (expectedHookAddress, salt) = HookMiner.find(address(factory), flags, type(SimpleHook).creationCode, constructorArgs);
+        (expectedHookAddress, salt) =
+            HookMiner.find(address(factory), flags, type(SimpleHook).creationCode, constructorArgs);
         address deployedHook = factory.deploy(salt, initCode);
         vm.stopBroadcast();
 

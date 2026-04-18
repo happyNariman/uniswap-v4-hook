@@ -19,3 +19,4 @@ cache/
 out/
 broadcast/
 .forge-snapshots/
+deployments/

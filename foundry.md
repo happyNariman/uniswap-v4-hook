@@ -199,7 +199,7 @@ Then run:
 
 ```bash
 source .env
-forge script script/DeploySimpleHook.s.sol \
+forge script script/01_DeploySimpleHook.s.sol \
   --rpc-url local \
   --broadcast
 ```
@@ -237,7 +237,7 @@ Why:
 2. If the address bits do not match the permissions returned by the hook, the hook will not work correctly.
 3. Because of that, a hook is usually deployed through a CREATE2 flow that first finds a valid salt.
 
-That is exactly what [`script/DeploySimpleHook.s.sol`](/script/DeploySimpleHook.s.sol) does.
+That is exactly what [`script/01_DeploySimpleHook.s.sol`](/script/01_DeploySimpleHook.s.sol) does.
 
 ## 9. The easiest learning flows
 
@@ -258,7 +258,175 @@ Use a fork:
 
 ```bash
 anvil --fork-url <RPC_URL>
+
+anvil --fork-url https://mainnet.unichain.org
 ```
+
+## 10. Demo pool scripts in this repository
+
+After you deploy `SimpleHook`, this repository now has four follow-up scripts for a full local learning flow:
+
+1. Create a demo pool that uses the latest deployed hook
+2. Add or remove liquidity
+3. Execute a swap
+4. Read the hook's stored state
+
+They share state through:
+
+```text
+deployments/<chainId>/demo-pool.json
+```
+
+This file is generated locally and ignored by git.
+
+### A. Create the demo pool
+
+This script:
+
+- reads the latest hook address from `broadcast/01_DeploySimpleHook.s.sol/<chainId>/run-latest.json`
+- deploys two local mock ERC-20 tokens
+- deploys helper router contracts for liquidity and swaps
+- initializes a pool that points at your hook
+- writes all important addresses to `deployments/<chainId>/demo-pool.json`
+
+Run:
+
+```bash
+source .env
+forge script script/02_CreateDemoPool.s.sol \
+  --rpc-url local \
+  --broadcast
+```
+
+Optional environment overrides:
+
+```bash
+HOOK_ADDRESS=<hook address>
+POOL_FEE=3000
+TICK_SPACING=60
+SQRT_PRICE_X96=79228162514264337593543950336
+```
+
+### B. Add liquidity
+
+Run:
+
+```bash
+source .env
+forge script script/03_ModifyLiquidity.s.sol \
+  --rpc-url local \
+  --broadcast
+```
+
+Defaults:
+
+- `LIQUIDITY_DELTA=1000000000000000000` adds liquidity
+- `TICK_LOWER=-120`
+- `TICK_UPPER=120`
+
+To remove liquidity instead, use a negative delta:
+
+```bash
+source .env
+LIQUIDITY_DELTA=-1000000000000000000 \
+forge script script/03_ModifyLiquidity.s.sol \
+  --rpc-url local \
+  --broadcast
+```
+
+### C. Swap
+
+Run:
+
+```bash
+source .env
+forge script script/04_Swap.s.sol \
+  --rpc-url local \
+  --broadcast
+```
+
+Defaults:
+
+- `ZERO_FOR_ONE=true`
+- `SWAP_AMOUNT=1000000000000000000`
+
+Example for swapping token1 to token0:
+
+```bash
+source .env
+ZERO_FOR_ONE=false \
+SWAP_AMOUNT=500000000000000000 \
+forge script script/04_Swap.s.sol \
+  --rpc-url local \
+  --broadcast
+```
+
+### D. Read hook info
+
+Run:
+
+```bash
+source .env
+forge script script/05_ReadHookInfo.s.sol \
+  --rpc-url local
+```
+
+This prints:
+
+- the hook address
+- the pool manager address
+- the pool id
+- `swapCount(poolId)`
+- `lastRouter(poolId)`
+
+### E. Important learning note
+
+The demo liquidity position belongs to the saved helper router contract from `demo-pool.json`.
+
+That is why:
+
+- you should create the pool first
+- then modify liquidity using the saved router
+- and not replace `deployments/<chainId>/demo-pool.json` in the middle of the flow unless you intentionally want a new setup
+
+## 11. Resetting local state after restarting Anvil
+
+When you restart `anvil`, deployed contracts on the local chain disappear, but your local project files still remain.
+
+That means old files such as:
+
+- `deployments/<chainId>/demo-pool.json`
+- `broadcast/.../run-latest.json`
+
+may point to contracts that no longer exist on the new local chain.
+
+This repository includes a helper script:
+
+```bash
+./reset-local.sh
+```
+
+Default behavior:
+
+- removes `deployments/`
+- keeps `broadcast/`
+- keeps build artifacts
+
+For a full reset:
+
+```bash
+./reset-local.sh --full
+```
+
+Full mode also removes:
+
+- `broadcast/`
+- `cache/`
+- `out/`
+
+This is useful when you want to start a completely fresh local learning cycle.
+
+````
 
 Then run scripts against the fork.
 
@@ -268,7 +436,7 @@ Use a fresh local node:
 
 ```bash
 anvil
-```
+````
 
 Then deploy every dependency yourself.
 
@@ -305,7 +473,7 @@ source .env
 5. Run the script:
 
 ```bash
-forge script script/DeploySimpleHook.s.sol \
+forge script script/01_DeploySimpleHook.s.sol \
   --rpc-url local \
   --broadcast
 ```
@@ -364,7 +532,7 @@ forge test -vvv
 
 ```bash
 source .env
-forge script script/DeploySimpleHook.s.sol \
+forge script script/01_DeploySimpleHook.s.sol \
   --rpc-url local \
   --broadcast
 ```
