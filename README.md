@@ -47,6 +47,11 @@ forge script script/DeploySimpleHook.s.sol \
   --broadcast
 ```
 
+```bash
+source .env
+forge script script/DeploySimpleHook.s.sol --rpc-url local --broadcast
+```
+
 ## How to read this project
 
 1. Start with [`SimpleHook.sol`](/src/SimpleHook.sol).
