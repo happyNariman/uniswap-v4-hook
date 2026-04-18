@@ -31,8 +31,11 @@ jobs:
       - name: Run Forge fmt
         run: forge fmt --check
 
+      - name: Run Forge size check
+        run: forge build --sizes src
+
       - name: Run Forge build
-        run: forge build --sizes
+        run: forge build
 
       - name: Run Forge tests
         run: forge test -vvv
