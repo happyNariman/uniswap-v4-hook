@@ -33,20 +33,17 @@ If you want more detail:
 forge test --match-contract SimpleHookTest -vvvv
 ```
 
-## How to run a local deployment
+## How to run a deployment script
 
-In one terminal:
-
-```bash
-anvil
-```
-
-In another:
+This repository now avoids third-party local deployment helpers and keeps deployment scripts minimal.
+The script expects an existing Uniswap v4 `PoolManager` address in the environment:
 
 ```bash
+export POOL_MANAGER=<POOL_MANAGER_ADDRESS>
+
 forge script script/DeploySimpleHook.s.sol \
-  --rpc-url http://127.0.0.1:8545 \
-  --private-key <ANVIL_PRIVATE_KEY> \
+  --rpc-url <RPC_URL> \
+  --private-key <PRIVATE_KEY> \
   --broadcast
 ```
 
@@ -72,6 +69,11 @@ forge script script/DeploySimpleHook.s.sol \
 - `forge script ... --broadcast`: execute a deployment or script
 - `anvil`: start a local EVM network
 - `cast`: CLI for reading chain state, calling contracts, and working with wallets
+
+## Why there is no `hookmate`
+
+This project intentionally avoids the `hookmate` dependency.
+The hook itself depends only on official Uniswap/OpenZeppelin libraries, and the tests use official Uniswap v4 test utilities.
 
 ## Next step
 
